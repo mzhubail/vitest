@@ -7,65 +7,88 @@ import type { Filter } from '../types/runner'
  * If any tasks been marked as `only`, mark all other tasks as `skip`.
  */
 export function interpretTaskModes(
-  suite: Suite,
+  suite_: Suite,
   namePattern?: string | RegExp,
   locationFilters?: Required<Filter[]>,
   onlyMode?: boolean,
   parentIsOnly?: boolean,
   allowOnly?: boolean,
 ): void {
-  const suiteIsOnly = parentIsOnly || suite.mode === 'only'
+  const filtersMap = locationFilters
+    ? Object.fromEntries(
+      locationFilters.map(f => ([`${f.filename}-${f.lineNumber}`, { filter: f, matched: false }])),
+    )
+    : {}
 
-  suite.tasks.forEach((t) => {
-    // Check if either the parent suite or the task itself are marked as included
-    const includeTask = suiteIsOnly || t.mode === 'only'
-    if (onlyMode) {
-      if (t.type === 'suite' && (includeTask || someTasksAreOnly(t))) {
-        // Don't skip this suite
-        if (t.mode === 'only') {
+  const traverseSuite = (suite: Suite) => {
+    const suiteIsOnly = parentIsOnly || suite.mode === 'only'
+
+    suite.tasks.forEach((t) => {
+      // Check if either the parent suite or the task itself are marked as included
+      const includeTask = suiteIsOnly || t.mode === 'only'
+      if (onlyMode) {
+        if (t.type === 'suite' && (includeTask || someTasksAreOnly(t))) {
+          // Don't skip this suite
+          if (t.mode === 'only') {
+            checkAllowOnly(t, allowOnly)
+            t.mode = 'run'
+          }
+        }
+        else if (t.mode === 'run' && !includeTask) {
+          t.mode = 'skip'
+        }
+        else if (t.mode === 'only') {
           checkAllowOnly(t, allowOnly)
           t.mode = 'run'
         }
       }
-      else if (t.mode === 'run' && !includeTask) {
-        t.mode = 'skip'
-      }
-      else if (t.mode === 'only') {
-        checkAllowOnly(t, allowOnly)
-        t.mode = 'run'
-      }
-    }
-    if (t.type === 'test') {
-      if (namePattern && !getTaskFullName(t).match(namePattern)) {
-        t.mode = 'skip'
-      }
+      if (t.type === 'test') {
+        if (namePattern && !getTaskFullName(t).match(namePattern)) {
+          t.mode = 'skip'
+        }
 
-      const relevantFilters = locationFilters?.filter(
-        f => t.file.filepath.includes(f.filename),
-      )
+        const relevantFilters = locationFilters?.filter(
+          f => t.file.filepath.includes(f.filename),
+        )
 
-      if (relevantFilters && relevantFilters.length !== 0) {
-        t.mode = relevantFilters.some(f => f.lineNumber === t.location?.line)
-          ? 'run'
-          : 'skip'
-      }
-    }
-    else if (t.type === 'suite') {
-      if (t.mode === 'skip') {
-        skipAllTasks(t)
-      }
-      else {
-        interpretTaskModes(t, namePattern, locationFilters, onlyMode, includeTask, allowOnly)
-      }
-    }
-  })
+        if (relevantFilters && relevantFilters.length !== 0) {
+          const matchedFilter = relevantFilters.find(f => f.lineNumber === t.location?.line)
 
-  // if all subtasks are skipped, mark as skip
-  if (suite.mode === 'run') {
-    if (suite.tasks.length && suite.tasks.every(i => i.mode !== 'run')) {
-      suite.mode = 'skip'
+          if (matchedFilter !== undefined) {
+            filtersMap[`${matchedFilter.filename}-${matchedFilter.lineNumber}`].matched = true
+            t.mode = 'run'
+          }
+          else {
+            t.mode = 'skip'
+          }
+        }
+      }
+      else if (t.type === 'suite') {
+        if (t.mode === 'skip') {
+          skipAllTasks(t)
+        }
+        else {
+          traverseSuite(t)
+          // interpretTaskModes(t, namePattern, locationFilters, onlyMode, includeTask, allowOnly)
+        }
+      }
+    })
+
+    // if all subtasks are skipped, mark as skip
+    if (suite.mode === 'run') {
+      if (suite.tasks.length && suite.tasks.every(i => i.mode !== 'run')) {
+        suite.mode = 'skip'
+      }
     }
   }
+
+  traverseSuite(suite_)
+
+  Object.values(filtersMap).forEach((entry) => {
+    if (!entry.matched) {
+      console.error('ERR: Failed to match filter:', entry.filter)
+    }
+  })
 }
 
 function getTaskFullName(task: TaskBase): string {
