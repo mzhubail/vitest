@@ -39,11 +39,12 @@ export function interpretTaskModes(
       if (namePattern && !getTaskFullName(t).match(namePattern)) {
         t.mode = 'skip'
       }
-      if (locationFilters) {
-        const relevantFilters = locationFilters.filter(
-          f => t.file.filepath.includes(f.filename),
-        )
 
+      const relevantFilters = locationFilters?.filter(
+        f => t.file.filepath.includes(f.filename),
+      )
+
+      if (relevantFilters && relevantFilters.length !== 0) {
         t.mode = relevantFilters.some(f => f.lineNumber === t.location?.line)
           ? 'run'
           : 'skip'
