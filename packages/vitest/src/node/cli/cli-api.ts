@@ -4,6 +4,7 @@ import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'pathe'
 import type { UserConfig as ViteUserConfig } from 'vite'
 import type { File, Suite, Task } from '@vitest/runner'
+import type { Filter } from '@vitest/runner/types/runner'
 import { CoverageProviderMap } from '../../integrations/coverage'
 import type { environments } from '../../integrations/env'
 import { createVitest } from '../create'
@@ -235,6 +236,33 @@ export function formatCollectedAsString(files: File[]) {
       return name
     })
   }).flat()
+}
+
+export function parseFilter(f: string): Filter {
+  const colonIndex = f.indexOf(':')
+  if (colonIndex === -1) {
+    return { filename: f }
+  }
+
+  const [parsedFilename, lineNumber] = [
+    f.substring(0, colonIndex),
+    f.substring(colonIndex + 1),
+  ]
+
+  if (lineNumber.match(/^\d+$/)) {
+    return {
+      filename: parsedFilename,
+      lineNumber: Number.parseInt(lineNumber),
+    }
+  }
+  else if (lineNumber.includes('-')) {
+    throw new Error('Range line numbers are not allowed')
+  }
+  else {
+    return {
+      filename: f,
+    }
+  }
 }
 
 const envPackageNames: Record<
