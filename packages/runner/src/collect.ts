@@ -97,6 +97,7 @@ export async function collectTests(
     interpretTaskModes(
       file,
       config.testNamePattern,
+      config.locationFilters,
       hasOnlyTasks,
       false,
       config.allowOnly,

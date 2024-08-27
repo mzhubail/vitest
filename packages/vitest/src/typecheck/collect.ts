@@ -203,6 +203,7 @@ export async function collectTests(
   interpretTaskModes(
     file,
     ctx.config.testNamePattern,
+    ctx.config.locationFilters,
     hasOnly,
     false,
     ctx.config.allowOnly,

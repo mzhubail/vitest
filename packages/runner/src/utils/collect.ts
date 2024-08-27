@@ -1,6 +1,7 @@
 import { processError } from '@vitest/utils/error'
 import { relative } from 'pathe'
 import type { File, Suite, TaskBase } from '../types/tasks'
+import type { Filter } from '../types/runner'
 
 /**
  * If any tasks been marked as `only`, mark all other tasks as `skip`.
@@ -8,6 +9,7 @@ import type { File, Suite, TaskBase } from '../types/tasks'
 export function interpretTaskModes(
   suite: Suite,
   namePattern?: string | RegExp,
+  locationFilters?: Required<Filter[]>,
   onlyMode?: boolean,
   parentIsOnly?: boolean,
   allowOnly?: boolean,
@@ -43,7 +45,7 @@ export function interpretTaskModes(
         skipAllTasks(t)
       }
       else {
-        interpretTaskModes(t, namePattern, onlyMode, includeTask, allowOnly)
+        interpretTaskModes(t, namePattern, locationFilters, onlyMode, includeTask, allowOnly)
       }
     }
   })

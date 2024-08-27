@@ -4,7 +4,7 @@ import c from 'tinyrainbow'
 import { version } from '../../../package.json' with { type: 'json' }
 import { toArray } from '../../utils/base'
 import type { VitestRunMode } from '../types/config'
-import type { CliOptions } from './cli-api'
+import { type CliOptions, parseFilter } from './cli-api'
 import type { CLIOption, CLIOptions as CLIOptionsConfig } from './cli-config'
 import { benchCliOptionsConfig, cliOptionsConfig, collectCliOptionsConfig } from './cli-config'
 
@@ -262,9 +262,13 @@ async function start(mode: VitestRunMode, cliFilters: string[], options: CliOpti
   }
   catch {}
 
+  const filters = cliFilters.map(normalize).map(parseFilter)
+
+  options.locationFilters = filters.filter(f => f.lineNumber !== undefined)
+
   try {
     const { startVitest } = await import('./cli-api')
-    const ctx = await startVitest(mode, cliFilters.map(normalize), normalizeCliOptions(options))
+    const ctx = await startVitest(mode, filters.map(f => f.filename), normalizeCliOptions(options))
     if (!ctx?.shouldKeepServer()) {
       await ctx?.exit()
     }
