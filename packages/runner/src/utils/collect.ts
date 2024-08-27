@@ -39,6 +39,15 @@ export function interpretTaskModes(
       if (namePattern && !getTaskFullName(t).match(namePattern)) {
         t.mode = 'skip'
       }
+      if (locationFilters) {
+        const relevantFilters = locationFilters.filter(
+          f => t.file.filepath.includes(f.filename),
+        )
+
+        t.mode = relevantFilters.some(f => f.lineNumber === t.location?.line)
+          ? 'run'
+          : 'skip'
+      }
     }
     else if (t.type === 'suite') {
       if (t.mode === 'skip') {
