@@ -38,6 +38,13 @@ export interface VitestRunnerConfig {
   retry: number
   includeTaskLocation?: boolean
   diffOptions?: DiffOptions
+
+  locationFilters?: Required<Filter[]>
+}
+
+export interface Filter {
+  filename: string
+  lineNumber?: number
 }
 
 export type VitestRunnerImportSource = 'collect' | 'setup'
