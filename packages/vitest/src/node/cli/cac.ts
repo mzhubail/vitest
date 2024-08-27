@@ -265,6 +265,7 @@ async function start(mode: VitestRunMode, cliFilters: string[], options: CliOpti
   const filters = cliFilters.map(normalize).map(parseFilter)
 
   options.locationFilters = filters.filter(f => f.lineNumber !== undefined)
+  options.includeTaskLocation = options.includeTaskLocation || options.locationFilters.length !== 0
 
   try {
     const { startVitest } = await import('./cli-api')
