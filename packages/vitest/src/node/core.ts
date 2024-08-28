@@ -377,7 +377,7 @@ export class Vitest {
     }
   }
 
-  async start(filters?: string[]) {
+  async start(filters?: Filter[]) {
     this._onClose = []
 
     try {
@@ -534,10 +534,10 @@ export class Vitest {
     for (const project of this.projects) {
       if (project.isTestFile(file)) {
         const pool = getFilePoolName(project, file)
-        specs.push(project.createSpec(file, pool))
+        specs.push(project.createSpec(file, pool, undefined))
       }
       if (project.isTypecheckFile(file)) {
-        specs.push(project.createSpec(file, 'typescript'))
+        specs.push(project.createSpec(file, 'typescript', undefined))
       }
     }
     specs.forEach(spec => this.ensureSpecCached(spec))
@@ -1083,18 +1083,22 @@ export class Vitest {
     return this.globTestSpecs().then(specs => specs.map(spec => spec.moduleId))
   }
 
-  public async globTestSpecs(filters: string[] = []) {
+  public async globTestSpecs(filters: Filter[] = []) {
+    // TODO include only relevant filters in a spec
     const files: WorkspaceSpec[] = []
     await Promise.all(this.projects.map(async (project) => {
-      const { testFiles, typecheckTestFiles } = await project.globTestFiles(filters)
+      const { testFiles, typecheckTestFiles } = await project.globTestFiles(
+        filters.map(f => f.filename),
+      )
+
       testFiles.forEach((file) => {
         const pool = getFilePoolName(project, file)
-        const spec = project.createSpec(file, pool)
+        const spec = project.createSpec(file, pool, tmpFilters)
         this.ensureSpecCached(spec)
         files.push(spec)
       })
       typecheckTestFiles.forEach((file) => {
-        const spec = project.createSpec(file, 'typescript')
+        const spec = project.createSpec(file, 'typescript', tmpFilters)
         this.ensureSpecCached(spec)
         files.push(spec)
       })
@@ -1105,7 +1109,7 @@ export class Vitest {
   /**
    * @deprecated use globTestSpecs instead
    */
-  public async globTestFiles(filters: string[] = []) {
+  public async globTestFiles(filters: Filter[] = []) {
     return this.globTestSpecs(filters)
   }
 

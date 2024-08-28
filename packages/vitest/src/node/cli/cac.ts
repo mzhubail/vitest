@@ -264,12 +264,11 @@ async function start(mode: VitestRunMode, cliFilters: string[], options: CliOpti
 
   const filters = cliFilters.map(normalize).map(parseFilter)
 
-  options.locationFilters = filters.filter(f => f.lineNumber !== undefined)
-  options.includeTaskLocation = options.includeTaskLocation || options.locationFilters.length !== 0
+  options.includeTaskLocation ||= filters.some(f => f.lineNumber !== undefined)
 
   try {
     const { startVitest } = await import('./cli-api')
-    const ctx = await startVitest(mode, filters.map(f => f.filename), normalizeCliOptions(options))
+    const ctx = await startVitest(mode, filters, normalizeCliOptions(options))
     if (!ctx?.shouldKeepServer()) {
       await ctx?.exit()
     }

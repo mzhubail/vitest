@@ -1,7 +1,7 @@
 import { processError } from '@vitest/utils/error'
 import { toArray } from '@vitest/utils'
 import type { File, SuiteHooks } from './types/tasks'
-import type { VitestRunner } from './types/runner'
+import type { FileSpec, VitestRunner } from './types/runner'
 import {
   calculateSuiteHash,
   createFileTask,
@@ -20,14 +20,15 @@ import { runSetupFiles } from './setup'
 const now = Date.now
 
 export async function collectTests(
-  paths: string[],
+  specs: FileSpec[],
   runner: VitestRunner,
 ): Promise<File[]> {
   const files: File[] = []
 
   const config = runner.config
 
-  for (const filepath of paths) {
+  for (const spec of specs) {
+    const { file: filepath, testLocations } = spec
     const file = createFileTask(filepath, config.root, config.name, runner.pool)
 
     runner.onCollectStart?.(file)
@@ -97,7 +98,7 @@ export async function collectTests(
     interpretTaskModes(
       file,
       config.testNamePattern,
-      config.locationFilters,
+      testLocations,
       hasOnlyTasks,
       false,
       config.allowOnly,

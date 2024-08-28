@@ -32,6 +32,7 @@ export async function groupFilesByEnv(
   const filesWithEnv = await Promise.all(
     files.map(async (spec) => {
       const file = spec.moduleId
+      const { testLocations } = spec
       const project = spec.project.workspaceProject
       const code = await fs.readFile(file, 'utf-8')
 
@@ -72,6 +73,7 @@ export async function groupFilesByEnv(
       }
       return {
         file,
+        testLocations,
         project,
         environment,
       }

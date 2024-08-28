@@ -26,7 +26,10 @@ export interface ContextRPC {
   workerId: number
   config: SerializedConfig
   projectName: string
-  files: string[]
+  files: {
+    file: string
+    testLocations: number[] | undefined
+  }[]
   environment: ContextTestEnvironment
   providedContext: Record<string, any>
   invalidates?: string[]
