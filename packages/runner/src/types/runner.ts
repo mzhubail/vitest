@@ -47,6 +47,11 @@ export interface Filter {
   lineNumber?: number
 }
 
+export interface FileSpec {
+  filepath: string
+  testLocations: number[] | undefined
+}
+
 export type VitestRunnerImportSource = 'collect' | 'setup'
 
 export interface VitestRunnerConstructor {

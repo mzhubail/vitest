@@ -156,7 +156,7 @@ export class WorkspaceProject {
   public createSpec(
     moduleId: string,
     pool: string,
-    testLocations: number[] | undefined,
+    testLocations?: number[] | undefined,
   ): DeprecatedWorkspaceSpec {
     return new TestSpecification(this, moduleId, pool, testLocations) as DeprecatedWorkspaceSpec
   }

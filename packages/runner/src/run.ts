@@ -496,7 +496,7 @@ export async function runFiles(files: File[], runner: VitestRunner): Promise<voi
 }
 
 export async function startTests(specs: FileSpec[], runner: VitestRunner): Promise<File[]> {
-  const paths = specs.map(f => f.file)
+  const paths = specs.map(f => f.filepath)
   await runner.onBeforeCollect?.(paths)
 
   const files = await collectTests(specs, runner)
@@ -514,7 +514,7 @@ export async function startTests(specs: FileSpec[], runner: VitestRunner): Promi
 }
 
 async function publicCollect(specs: FileSpec[], runner: VitestRunner): Promise<File[]> {
-  const paths = specs.map(f => f.file)
+  const paths = specs.map(f => f.filepath)
 
   await runner.onBeforeCollect?.(paths)
 

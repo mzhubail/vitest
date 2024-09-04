@@ -7,7 +7,6 @@ import { getTests, isWindows, stdout } from '../utils'
 import { toArray } from '../utils/base'
 import type { Vitest } from './core'
 import { WatchFilter } from './watch-filter'
-import { parseFilter } from './cli/cli-api'
 
 const keys = [
   [['a', 'return'], 'rerun all tests'],
@@ -186,7 +185,7 @@ export function registerConsoleShortcuts(
     )
 
     const filter = await watchFilter.filter(async (str: string) => {
-      const files = await ctx.globTestFiles([parseFilter(str)])
+      const files = await ctx.globTestFiles([str])
       return files.map(file => relative(ctx.config.root, file[1]))
     })
 

@@ -1,24 +1,19 @@
 import { processError } from '@vitest/utils/error'
 import { relative } from 'pathe'
 import type { File, Suite, TaskBase } from '../types/tasks'
-import type { Filter } from '../types/runner'
 
 /**
  * If any tasks been marked as `only`, mark all other tasks as `skip`.
  */
 export function interpretTaskModes(
-  suite_: Suite,
+  file: Suite,
   namePattern?: string | RegExp,
-  locationFilters?: Required<Filter[]>,
+  testLocations?: number[] | undefined, // TODO fix
   onlyMode?: boolean,
   parentIsOnly?: boolean,
   allowOnly?: boolean,
 ): void {
-  const filtersMap = locationFilters
-    ? Object.fromEntries(
-      locationFilters.map(f => ([`${f.filename}-${f.lineNumber}`, { filter: f, matched: false }])),
-    )
-    : {}
+  const matchedLocations: number[] = []
 
   const traverseSuite = (suite: Suite) => {
     const suiteIsOnly = parentIsOnly || suite.mode === 'only'
@@ -47,16 +42,13 @@ export function interpretTaskModes(
           t.mode = 'skip'
         }
 
-        const relevantFilters = locationFilters?.filter(
-          f => t.file.filepath.includes(f.filename),
-        )
-
-        if (relevantFilters && relevantFilters.length !== 0) {
-          const matchedFilter = relevantFilters.find(f => f.lineNumber === t.location?.line)
-
-          if (matchedFilter !== undefined) {
-            filtersMap[`${matchedFilter.filename}-${matchedFilter.lineNumber}`].matched = true
+        // Match test location against provided locations, only run if present
+        // in `testLocations`.  Note: if `includeTaskLocations` is not enabled,
+        // all test will be skipped.
+        if (testLocations !== undefined) {
+          if (t.location && testLocations?.includes(t.location.line)) {
             t.mode = 'run'
+            matchedLocations.push(t.location.line)
           }
           else {
             t.mode = 'skip'
@@ -82,13 +74,17 @@ export function interpretTaskModes(
     }
   }
 
-  traverseSuite(suite_)
+  traverseSuite(file)
 
-  Object.values(filtersMap).forEach((entry) => {
-    if (!entry.matched) {
-      console.error('ERR: Failed to match filter:', entry.filter)
-    }
-  })
+  const nonMatching = testLocations?.filter(loc => !matchedLocations.includes(loc))
+  if (nonMatching && nonMatching.length !== 0) {
+    const message = nonMatching.length === 1
+      ? `line ${nonMatching[0]}`
+      : `lines ${nonMatching.join(', ')}`
+
+    // TODO: figure out how to report errors
+    throw new Error(`No test found in ${file.name} in ${message}`)
+  }
 }
 
 function getTaskFullName(task: TaskBase): string {

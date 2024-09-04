@@ -4,6 +4,7 @@ import EventEmitter from 'node:events'
 import { Tinypool } from 'tinypool'
 import type { TinypoolChannel, Options as TinypoolOptions } from 'tinypool'
 import { createBirpc } from 'birpc'
+import type { FileSpec } from '@vitest/runner/types/runner'
 import type { PoolProcessOptions, ProcessPool, RunWithFiles } from '../pool'
 import type { WorkspaceProject } from '../workspace'
 import { envsOrder, groupFilesByEnv } from '../../utils/test-helpers'
@@ -104,7 +105,7 @@ export function createForksPool(
       environment: ContextTestEnvironment,
       invalidates: string[] = [],
     ) {
-      const paths = files.map(f => f.file)
+      const paths = files.map(f => f.filepath)
       ctx.state.clearFiles(project, paths)
 
       const { channel, cleanup } = createChildProcessChannel(project)
@@ -191,11 +192,11 @@ export function createForksPool(
         if (isolated) {
           results.push(
             ...(await Promise.allSettled(
-              files.map(({ file, testLocations, environment, project }) =>
+              files.map(({ file, environment, project }) =>
                 runFiles(
                   project,
                   getConfig(project),
-                  [{ file, testLocations }],
+                  [file],
                   environment,
                   invalidates,
                 ),
@@ -218,11 +219,11 @@ export function createForksPool(
             // Push all files to pool's queue
             results.push(
               ...(await Promise.allSettled(
-                group.map(({ file, testLocations, environment, project }) =>
+                group.map(({ file, environment, project }) =>
                   runFiles(
                     project,
                     getConfig(project),
-                    [{ file, testLocations }],
+                    [file],
                     environment,
                     invalidates,
                   ),
@@ -276,7 +277,7 @@ export function createForksPool(
             await runFiles(
               files[0].project,
               getConfig(files[0].project),
-              files,
+              files.map(f => f.file),
               files[0].environment,
               invalidates,
             )

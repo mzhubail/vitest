@@ -20,7 +20,7 @@ import { runSetupFiles } from './setup'
 const now = Date.now
 
 export async function collectTests(
-  specs: FileSpec[],
+  specs: string[] | FileSpec[],
   runner: VitestRunner,
 ): Promise<File[]> {
   const files: File[] = []
@@ -28,7 +28,9 @@ export async function collectTests(
   const config = runner.config
 
   for (const spec of specs) {
-    const { file: filepath, testLocations } = spec
+    const filepath = typeof spec === 'string' ? spec : spec.filepath
+    const testLocations = typeof spec === 'string' ? undefined : spec.testLocations
+
     const file = createFileTask(filepath, config.root, config.name, runner.pool)
 
     runner.onCollectStart?.(file)
@@ -95,6 +97,8 @@ export async function collectTests(
     })
 
     const hasOnlyTasks = someTasksAreOnly(file)
+    // TODO: throw an error if testLocations is set and `includeTaskLocations`
+    // is disabled.
     interpretTaskModes(
       file,
       config.testNamePattern,

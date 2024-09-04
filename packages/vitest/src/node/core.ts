@@ -32,6 +32,7 @@ import type { Reporter } from './types/reporter'
 import type { CoverageProvider } from './types/coverage'
 import { resolveWorkspace } from './workspace/resolveWorkspace'
 import type { TestSpecification } from './spec'
+import { parseFilter } from './cli/cli-api'
 
 const WATCHER_DEBOUNCE = 100
 
@@ -377,7 +378,7 @@ export class Vitest {
     }
   }
 
-  async start(filters?: Filter[]) {
+  async start(filters?: string[]) {
     this._onClose = []
 
     try {
@@ -1083,12 +1084,18 @@ export class Vitest {
     return this.globTestSpecs().then(specs => specs.map(spec => spec.moduleId))
   }
 
-  public async globTestSpecs(filters: Filter[] = []) {
+  public async globTestSpecs(filters: string[] = []) {
+    const parsedFilters = filters.map(parseFilter)
+
     // TODO include only relevant filters in a spec
+    const tmpFilters = parsedFilters
+      .map(f => f.lineNumber)
+      .filter(n => n !== undefined) as number[]
+
     const files: WorkspaceSpec[] = []
     await Promise.all(this.projects.map(async (project) => {
       const { testFiles, typecheckTestFiles } = await project.globTestFiles(
-        filters.map(f => f.filename),
+        parsedFilters.map(f => f.filename),
       )
 
       testFiles.forEach((file) => {
@@ -1109,7 +1116,7 @@ export class Vitest {
   /**
    * @deprecated use globTestSpecs instead
    */
-  public async globTestFiles(filters: Filter[] = []) {
+  public async globTestFiles(filters: string[] = []) {
     return this.globTestSpecs(filters)
   }
 

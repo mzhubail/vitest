@@ -141,8 +141,7 @@ export class Logger {
     return code
   }
 
-  printNoTestFound(filters_?: Filter[]) {
-    // TODO
+  printNoTestFound(filters?: string[]) {
     const config = this.ctx.config
     const comma = c.dim(', ')
     if (filters?.length) {
