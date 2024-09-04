@@ -189,9 +189,6 @@ export class Vitest {
     if (this.config.testNamePattern) {
       this.configOverride.testNamePattern = this.config.testNamePattern
     }
-    if (this.config.locationFilters) {
-      this.configOverride.locationFilters = this.config.locationFilters
-    }
   }
 
   public provide<T extends keyof ProvidedContext & string>(key: T, value: ProvidedContext[T]) {

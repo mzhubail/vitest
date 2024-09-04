@@ -4,7 +4,6 @@ import type { FakeTimerInstallOpts } from '@sinonjs/fake-timers'
 import type { SequenceHooks, SequenceSetupFiles } from '@vitest/runner'
 import type { ViteNodeServerOptions } from 'vite-node'
 import type { SnapshotStateOptions } from '@vitest/snapshot'
-import type { Filter } from '@vitest/runner/types/runner'
 import type {
   BuiltinReporterOptions,
   BuiltinReporters,
@@ -825,7 +824,6 @@ export interface InlineConfig {
    * @default false
    */
   includeTaskLocation?: boolean
-  locationFilters?: Required<Filter[]>
 }
 
 export interface TypecheckConfig {

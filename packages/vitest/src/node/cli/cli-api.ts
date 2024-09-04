@@ -4,7 +4,6 @@ import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'pathe'
 import type { UserConfig as ViteUserConfig } from 'vite'
 import type { File, Suite, Task } from '@vitest/runner'
-import type { Filter } from '@vitest/runner/types/runner'
 import { CoverageProviderMap } from '../../integrations/coverage'
 import type { environments } from '../../integrations/env'
 import { createVitest } from '../create'
@@ -238,7 +237,7 @@ export function formatCollectedAsString(files: File[]) {
   }).flat()
 }
 
-export function parseFilter(f: string): Filter {
+export function parseFilter(f: string) {
   const colonIndex = f.indexOf(':')
   if (colonIndex === -1) {
     return { filename: f }
