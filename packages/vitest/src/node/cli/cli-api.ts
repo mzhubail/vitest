@@ -10,7 +10,7 @@ import { createVitest } from '../create'
 import { registerConsoleShortcuts } from '../stdin'
 import type { Vitest, VitestOptions } from '../core'
 import { FilesNotFoundError, GitNotFoundError } from '../errors'
-import { getNames, getTests } from '../../utils'
+import { getNames, getTests, groupBy } from '../../utils'
 import type { UserConfig, VitestEnvironment, VitestRunMode } from '../types/config'
 
 export interface CliOptions extends UserConfig {
@@ -262,6 +262,37 @@ export function parseFilter(f: string) {
       filename: f,
     }
   }
+}
+
+interface Filter {
+  filename: string
+  lineNumber?: undefined | number
+}
+
+export function groupFilters(filters: Filter[]) {
+  const groupedFilters_ = groupBy(filters, f => f.filename)
+  const groupedFilters = Object.fromEntries(Object.entries(groupedFilters_)
+    .map((entry) => {
+      const [filename, filters] = entry
+      const testLocations = filters.map(f => f.lineNumber)
+
+      // `testLocations` should be all of same type, mixing means the file was
+      // specified with and without test locations
+      if (
+        testLocations.length === 0
+        && testLocations.some(f => typeof f !== typeof filters[0])
+      ) {
+        console.error(`ERR: ${filename} was provided with and without test location`)
+      }
+
+      return [
+        filename,
+        testLocations.filter(l => l !== undefined) as number[],
+      ]
+    }),
+  )
+
+  return groupedFilters
 }
 
 const envPackageNames: Record<

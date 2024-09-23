@@ -32,7 +32,7 @@ import type { Reporter } from './types/reporter'
 import type { CoverageProvider } from './types/coverage'
 import { resolveWorkspace } from './workspace/resolveWorkspace'
 import type { TestSpecification } from './spec'
-import { parseFilter } from './cli/cli-api'
+import { groupFilters, parseFilter } from './cli/cli-api'
 
 const WATCHER_DEBOUNCE = 100
 
@@ -1082,12 +1082,14 @@ export class Vitest {
   }
 
   public async globTestSpecs(filters: string[] = []) {
-    const parsedFilters = filters.map(parseFilter)
+    const parsedFilters = filters.map(f => parseFilter(f))
+    const testLocations = groupFilters(parsedFilters.map(
+      f => ({ ...f, filename: resolve(f.filename) }),
+    ))
 
-    // TODO include only relevant filters in a spec
-    const tmpFilters = parsedFilters
-      .map(f => f.lineNumber)
-      .filter(n => n !== undefined) as number[]
+    // Key is file and val sepcifies whether we have matched this file with testLocation
+    const testLocMatches: { [f: string]: boolean } = {}
+
 
     const files: WorkspaceSpec[] = []
     await Promise.all(this.projects.map(async (project) => {
@@ -1097,12 +1099,14 @@ export class Vitest {
 
       testFiles.forEach((file) => {
         const pool = getFilePoolName(project, file)
-        const spec = project.createSpec(file, pool, tmpFilters)
+        const loc = testLocations[file]
+        const spec = project.createSpec(file, pool, loc)
         this.ensureSpecCached(spec)
         files.push(spec)
       })
       typecheckTestFiles.forEach((file) => {
-        const spec = project.createSpec(file, 'typescript', tmpFilters)
+        const loc = testLocations[file]
+        const spec = project.createSpec(file, 'typescript', loc)
         this.ensureSpecCached(spec)
         files.push(spec)
       })
