@@ -532,10 +532,10 @@ export class Vitest {
     for (const project of this.projects) {
       if (project.isTestFile(file)) {
         const pool = getFilePoolName(project, file)
-        specs.push(project.createSpec(file, pool, undefined))
+        specs.push(project.createSpec(file, pool))
       }
       if (project.isTypecheckFile(file)) {
-        specs.push(project.createSpec(file, 'typescript', undefined))
+        specs.push(project.createSpec(file, 'typescript'))
       }
     }
     specs.forEach(spec => this.ensureSpecCached(spec))

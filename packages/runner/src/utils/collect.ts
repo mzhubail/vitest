@@ -8,7 +8,7 @@ import type { File, Suite, TaskBase } from '../types/tasks'
 export function interpretTaskModes(
   file: Suite,
   namePattern?: string | RegExp,
-  testLocations?: number[] | undefined, // TODO fix
+  testLocations?: number[] | undefined,
   onlyMode?: boolean,
   parentIsOnly?: boolean,
   allowOnly?: boolean,
@@ -45,7 +45,7 @@ export function interpretTaskModes(
         // Match test location against provided locations, only run if present
         // in `testLocations`.  Note: if `includeTaskLocations` is not enabled,
         // all test will be skipped.
-        if (testLocations !== undefined) {
+        if (testLocations !== undefined && testLocations.length !== 0) {
           if (t.location && testLocations?.includes(t.location.line)) {
             t.mode = 'run'
             matchedLocations.push(t.location.line)

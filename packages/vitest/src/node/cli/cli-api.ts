@@ -258,9 +258,7 @@ export function parseFilter(f: string) {
     throw new Error('Range line numbers are not allowed')
   }
   else {
-    return {
-      filename: f,
-    }
+    return { filename: f }
   }
 }
 
