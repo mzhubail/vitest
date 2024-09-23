@@ -391,6 +391,12 @@ export class Vitest {
       await this.globTestFiles(filters),
     )
 
+    if (!this.config.includeTaskLocation && files.some(spec => spec.testLocations)) {
+      this.logger.printIncludeTaskLocationDisabled(filters)
+
+      process.exitCode = 1
+    }
+
     // if run with --changed, don't exit if no tests are found
     if (!files.length) {
       // Report coverage for uncovered files

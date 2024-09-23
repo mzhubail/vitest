@@ -97,8 +97,6 @@ export async function collectTests(
     })
 
     const hasOnlyTasks = someTasksAreOnly(file)
-    // TODO: throw an error if testLocations is set and `includeTaskLocations`
-    // is disabled.
     interpretTaskModes(
       file,
       config.testNamePattern,
