@@ -1106,17 +1106,27 @@ export class Vitest {
       testFiles.forEach((file) => {
         const pool = getFilePoolName(project, file)
         const loc = testLocations[file]
+        testLocMatches[file] = true
         const spec = project.createSpec(file, pool, loc)
         this.ensureSpecCached(spec)
         files.push(spec)
       })
       typecheckTestFiles.forEach((file) => {
         const loc = testLocations[file]
+        testLocMatches[file] = true
         const spec = project.createSpec(file, 'typescript', loc)
         this.ensureSpecCached(spec)
         files.push(spec)
       })
     }))
+
+    Object.entries(testLocations).forEach(([filepath, loc]) => {
+      if (loc.length !== 0 && !testLocMatches[filepath]) {
+        console.error(`Couldn\'t find file "${filepath}".\n`
+        + 'Note when specifying the test location you have to specify the full test file name.')
+      }
+    })
+
     return files
   }
 
