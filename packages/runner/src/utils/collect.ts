@@ -93,7 +93,7 @@ export function interpretTaskModes(
     }
 
     file.result.errors.push(
-      processError(new Error(`No test found in ${file.name} in ${message}`))
+      processError(new Error(`No test found in ${file.name} in ${message}`)),
     )
   }
 }

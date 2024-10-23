@@ -1094,7 +1094,6 @@ export class Vitest {
     // Key is file and val sepcifies whether we have matched this file with testLocation
     const testLocHasMatch: { [f: string]: boolean } = {}
 
-
     const files: WorkspaceSpec[] = []
     await Promise.all(this.projects.map(async (project) => {
       const { testFiles, typecheckTestFiles } = await project.globTestFiles(
@@ -1125,7 +1124,7 @@ export class Vitest {
         const rel = relative(this.config.dir || this.config.root, filepath)
 
         this.logger.printError(new Error(`Couldn\'t find file "${rel}".\n`
-          + 'Note when specifying the test location you have to specify the full test filename.',
+        + 'Note when specifying the test location you have to specify the full test filename.',
         ))
       }
     })
