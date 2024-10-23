@@ -26,7 +26,7 @@ import { VitestCache } from './cache'
 import { WorkspaceProject } from './workspace'
 import { VitestPackageInstaller } from './packageInstaller'
 import { BlobReporter, readBlobs } from './reporters/blob'
-import { FilesNotFoundError, GitNotFoundError } from './errors'
+import { FilesNotFoundError, GitNotFoundError, IncludeTaskLocationDisabledError } from './errors'
 import type { ResolvedConfig, UserConfig, VitestRunMode } from './types/config'
 import type { Reporter } from './types/reporter'
 import type { CoverageProvider } from './types/coverage'
@@ -392,7 +392,7 @@ export class Vitest {
     )
 
     if (!this.config.includeTaskLocation && files.some(spec => spec.testLocations)) {
-      throw new Error('You are using line number filters with includeTaskLocation option disabled')
+      throw new IncludeTaskLocationDisabledError()
     }
 
     // if run with --changed, don't exit if no tests are found

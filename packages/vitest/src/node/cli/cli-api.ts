@@ -9,7 +9,7 @@ import type { environments } from '../../integrations/env'
 import { createVitest } from '../create'
 import { registerConsoleShortcuts } from '../stdin'
 import type { Vitest, VitestOptions } from '../core'
-import { FilesNotFoundError, GitNotFoundError } from '../errors'
+import { FilesNotFoundError, GitNotFoundError, IncludeTaskLocationDisabledError } from '../errors'
 import { getNames, getTests, groupBy } from '../../utils'
 import type { UserConfig, VitestEnvironment, VitestRunMode } from '../types/config'
 
@@ -101,6 +101,11 @@ export async function startVitest(
 
     if (e instanceof GitNotFoundError) {
       ctx.logger.error(e.message)
+      return ctx
+    }
+
+    if (e instanceof IncludeTaskLocationDisabledError) {
+      ctx.logger.printError(e, { verbose: false })
       return ctx
     }
 
