@@ -391,7 +391,11 @@ export class Vitest {
       await this.globTestFiles(filters),
     )
 
-    if (!this.config.includeTaskLocation && files.some(spec => spec.testLocations)) {
+    console.error({ files })
+    if (
+      !this.config.includeTaskLocation &&
+      files.some(spec => spec.testLocations && spec.testLocations.length !== 0)
+    ) {
       throw new IncludeTaskLocationDisabledError()
     }
 
