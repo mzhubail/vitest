@@ -513,8 +513,8 @@ export async function startTests(specs: FileSpec[], runner: VitestRunner): Promi
   return files
 }
 
-async function publicCollect(specs: FileSpec[], runner: VitestRunner): Promise<File[]> {
-  const paths = specs.map(f => f.filepath)
+async function publicCollect(specs: string[] | FileSpec[], runner: VitestRunner): Promise<File[]> {
+  const paths = specs.map(f => typeof f === 'string' ? f : f.filepath)
 
   await runner.onBeforeCollect?.(paths)
 
