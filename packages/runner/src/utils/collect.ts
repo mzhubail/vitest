@@ -82,8 +82,19 @@ export function interpretTaskModes(
       ? `line ${nonMatching[0]}`
       : `lines ${nonMatching.join(', ')}`
 
-    // TODO: figure out how to report errors
-    throw new Error(`No test found in ${file.name} in ${message}`)
+    if (file.result === undefined) {
+      file.result = {
+        state: 'fail',
+        errors: [],
+      }
+    }
+    if (file.result.errors === undefined) {
+      file.result.errors = []
+    }
+
+    file.result.errors.push(
+      processError(new Error(`No test found in ${file.name} in ${message}`))
+    )
   }
 }
 

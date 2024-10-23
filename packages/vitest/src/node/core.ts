@@ -392,9 +392,7 @@ export class Vitest {
     )
 
     if (!this.config.includeTaskLocation && files.some(spec => spec.testLocations)) {
-      this.logger.printIncludeTaskLocationDisabled(filters)
-
-      process.exitCode = 1
+      throw new Error('You are using line number filters with includeTaskLocation option disabled')
     }
 
     // if run with --changed, don't exit if no tests are found
@@ -1094,7 +1092,7 @@ export class Vitest {
     ))
 
     // Key is file and val sepcifies whether we have matched this file with testLocation
-    const testLocMatches: { [f: string]: boolean } = {}
+    const testLocHasMatch: { [f: string]: boolean } = {}
 
 
     const files: WorkspaceSpec[] = []
@@ -1106,14 +1104,16 @@ export class Vitest {
       testFiles.forEach((file) => {
         const pool = getFilePoolName(project, file)
         const loc = testLocations[file]
-        testLocMatches[file] = true
+        testLocHasMatch[file] = true
+
         const spec = project.createSpec(file, pool, loc)
         this.ensureSpecCached(spec)
         files.push(spec)
       })
       typecheckTestFiles.forEach((file) => {
         const loc = testLocations[file]
-        testLocMatches[file] = true
+        testLocHasMatch[file] = true
+
         const spec = project.createSpec(file, 'typescript', loc)
         this.ensureSpecCached(spec)
         files.push(spec)
@@ -1121,9 +1121,12 @@ export class Vitest {
     }))
 
     Object.entries(testLocations).forEach(([filepath, loc]) => {
-      if (loc.length !== 0 && !testLocMatches[filepath]) {
-        console.error(`Couldn\'t find file "${filepath}".\n`
-        + 'Note when specifying the test location you have to specify the full test file name.')
+      if (loc.length !== 0 && !testLocHasMatch[filepath]) {
+        const rel = relative(this.config.dir || this.config.root, filepath)
+
+        this.logger.printError(new Error(`Couldn\'t find file "${rel}".\n`
+          + 'Note when specifying the test location you have to specify the full test filename.',
+        ))
       }
     })
 

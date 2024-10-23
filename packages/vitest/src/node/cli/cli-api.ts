@@ -274,15 +274,6 @@ export function groupFilters(filters: Filter[]) {
       const [filename, filters] = entry
       const testLocations = filters.map(f => f.lineNumber)
 
-      // `testLocations` should be all of same type, mixing means the file was
-      // specified with and without test locations
-      if (
-        testLocations.length !== 0
-        && testLocations.some(l => typeof l !== typeof testLocations[0])
-      ) {
-        console.error(`ERR: ${filename} was provided with and without test location`)
-      }
-
       return [
         filename,
         testLocations.filter(l => l !== undefined) as number[],
